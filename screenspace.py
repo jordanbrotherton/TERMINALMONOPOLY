@@ -22,6 +22,7 @@ rows = HEIGHT//2
 cols = WIDTH//2
 DEBUG = False
 VERBOSE = True # Set to True to see all output in the output areas. If the user does not need to see the output (any privacy concerns or in a tournament game), set to False via -silent sys.argv.
+screen = "terminal"
 
 MONOPOLY_OUTPUT_COORDINATES = (1, 47) # (0, 47) is the top left corner of the monopoly output frame. Add 1 to x and y to print within in the frame.
 TTT_OUTPUT_COORDINATES = (157, 13) # (157, 11) is the top left corner of the ttt output frame. Add 1 to x and y to print within in the frame.
@@ -122,36 +123,38 @@ class Terminal:
         Returns: 
             None
         """
-        print(COLORS.RESET, end='') # Reset color before printing
-        if self.data and not callable(self.data):
-            if self.data:
-                line_list = self.data.split('\n')
-                if len(line_list) > rows and self.padded_data:
-                    line_list = line_list[:rows] # Truncate if necessary bc someone might send a long string
-                for i in range(len(line_list)):
-                    set_cursor(self.x,self.y+i)
-                    if self.padded_data: 
-                        line_list[i] = line_list[i] + " " * (cols - len(line_list[i])) # Pad with spaces if necessary
+        global screen
+        if screen == "terminal":
+            print(COLORS.RESET, end='') # Reset color before printing
+            if self.data and not callable(self.data):
+                if self.data:
+                    line_list = self.data.split('\n')
+                    if len(line_list) > rows and self.padded_data:
+                        line_list = line_list[:rows] # Truncate if necessary bc someone might send a long string
+                    for i in range(len(line_list)):
+                        set_cursor(self.x,self.y+i)
+                        if self.padded_data: 
+                            line_list[i] = line_list[i] + " " * (cols - len(line_list[i])) # Pad with spaces if necessary
 
-                    print(line_list[i][:cols] if len(line_list[i]) > cols and self.padded_data else line_list[i]) # Truncate if necessary bc someone might send a long string
-                for i in range(len(line_list), rows):
-                    set_cursor(self.x,self.y+i)
-                    print(" " * cols)
-        elif callable(self.data):
-            self.data()
-        else:
-            set_cursor(x=self.x + 10, y= self.y + 4)
-            print(f'╔══════Terminal {self.index}══════╗')
-            
-            set_cursor(x=self.x + 10, y= self.y + 5)
-            print('║ Awaiting commands... ║')
+                        print(line_list[i][:cols] if len(line_list[i]) > cols and self.padded_data else line_list[i]) # Truncate if necessary bc someone might send a long string
+                    for i in range(len(line_list), rows):
+                        set_cursor(self.x,self.y+i)
+                        print(" " * cols)
+            elif callable(self.data):
+                self.data()
+            else:
+                set_cursor(x=self.x + 10, y= self.y + 4)
+                print(f'╔══════Terminal {self.index}══════╗')
+                
+                set_cursor(x=self.x + 10, y= self.y + 5)
+                print('║ Awaiting commands... ║')
 
-            set_cursor(x=self.x + 10, y= self.y + 6)
-            print('╚══════════════════════╝')
+                set_cursor(x=self.x + 10, y= self.y + 6)
+                print('╚══════════════════════╝')
 
-        debug_note()
-        print(COLORS.RESET, end='')
-        set_cursor(0,INPUTLINE)
+            debug_note()
+            print(COLORS.RESET, end='')
+            set_cursor(0,INPUTLINE)
     
     def translate_coords(self, data) -> str:
         pattern = r'\033\[(\d+);(\d+)H'

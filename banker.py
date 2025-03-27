@@ -546,6 +546,7 @@ def monopoly_game(client: Client = None, cmd: str = None) -> None:
             # Need to check if doubles were rolled, otherwise end the rolling phase
             if dice[0] != dice[1]:
                 client.can_roll = False
+                ret_val = "player_choice" + ss.set_cursor_str(0, 36) + "e to end turn, p to manage properties, d to view a deed?" + mply.get_gameboard()
             net.send_notif(client.socket, ret_val, "MPLY:")
         elif action == 'propmgmt': #TODO This is almost complete. Still somewhat buggy.
             try: 

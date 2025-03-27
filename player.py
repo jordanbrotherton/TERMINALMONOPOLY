@@ -13,7 +13,6 @@ import validation
 import modules_directory.inventory as inv
 
 game_running = False
-screen = "terminal"
 sockets = (socket.socket(socket.AF_INET, socket.SOCK_STREAM), socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 ADDRESS = ""
 PORT = 0
@@ -206,7 +205,7 @@ def print_queue():
     Ran in its independent thread.
     """
     while True:
-        if screen == 'terminal': # Only update if we are in the terminal screen.
+        if ss.screen == 'terminal': # Only update if we are in the terminal screen.
             for t in TERMINALS:
                 if t.status == "DISABLED" or t.status == "BUSY": # Skip disabled or (just in case) busy terminals.
                     continue
@@ -234,7 +233,7 @@ def start_notification_listener(my_socket: socket.socket) -> None:
     Returns:
     None
     """
-    global screen, player_id
+    global player_id
     notif_list = []
     current_pos = 1 # Current position of the notification in the player's interface, where value is 1-4 for each terminal.
 
@@ -268,7 +267,7 @@ def start_notification_listener(my_socket: socket.socket) -> None:
             gameboard = notif[5:]
             ss.clear_screen()
             print(gameboard)
-            screen = 'gameboard'
+            ss.screen = 'gameboard'
 
             if "ENDOFTURN" in gameboard:
                 gameboard.replace("ENDOFTURN", "")
@@ -276,7 +275,7 @@ def start_notification_listener(my_socket: socket.socket) -> None:
                 print(gameboard)
                 # ss.set_cursor(0, ss.INPUTLINE)
                 # print("End of turn. Press enter to return to terminal.")
-                screen = 'terminal'
+                ss.screen = 'terminal'
                 # ss.initialize_terminals()
                 ss.update_terminal(active_terminal.index, active_terminal.index)
                 ss.set_cursor(0, ss.INPUTLINE)
@@ -310,7 +309,7 @@ def get_input() -> None:
     Parameters: None
     Returns: None
     """
-    global active_terminal, screen, player_id
+    global active_terminal, player_id
     cmds = get_module_commands()
     threading.Thread(target=print_queue, daemon=True).start()
 
@@ -319,12 +318,12 @@ def get_input() -> None:
     last_terminal = -1
 
     while(stdIn != "exit" or game_running):
-        if screen == 'gameboard':
+        if ss.screen == 'gameboard':
 
             # I turned off my brain while writing this part. The player can essentially send any command here
             # and it is only slightly regulated by the server. Better client-side handling is needed. TODO
             if not skip_initial_input:
-                stdIn = input(COLORS.backBLACK+'\r').lower().strip()
+                stdIn = input('\r').lower().strip()
             skip_initial_input = False
             if stdIn.isspace() or stdIn == "":
                 # On empty input make sure to jump back on the console line instead of printing anew
@@ -347,14 +346,14 @@ def get_input() -> None:
             elif stdIn == 'e':
                 net.send_message(sockets[1], f'{player_id}mply,endturn')
 
-        elif screen == 'terminal':
-            if screen == 'gameboard': # If player has been "pulled" into the gameboard, don't process input
+        elif ss.screen == 'terminal':
+            if ss.screen == 'gameboard': # If player has been "pulled" into the gameboard, don't process input
                 skip_initial_input = True
                 continue
             if active_terminal.persistent and last_terminal != active_terminal.index:
                 stdIn = active_terminal.command
             else:
-                stdIn = input(COLORS.backBLACK+'\r').lower().strip()
+                stdIn = input('\r').lower().strip()
 
             last_terminal = active_terminal.index
             
